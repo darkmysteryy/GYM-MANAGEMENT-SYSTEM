@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GymSphere – Gym Management System</title>
+  <meta name="description" content="GymSphere: A modern, cloud-based Gym Management System with member tracking, billing, scheduling, and analytics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">💪</div>
+    <span class="logo-text">GymSphere</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard" onclick="showSection('dashboard',this)">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </a>
+    <a href="#" class="nav-item" data-section="members" onclick="showSection('members',this)">
+      <span class="nav-icon">👥</span><span>Members</span>
+    </a>
+    <a href="#" class="nav-item" data-section="scheduling" onclick="showSection('scheduling',this)">
+      <span class="nav-icon">📅</span><span>Scheduling</span>
+    </a>
+    <a href="#" class="nav-item" data-section="billing" onclick="showSection('billing',this)">
+      <span class="nav-icon">💳</span><span>Billing</span>
+    </a>
+    <a href="#" class="nav-item" data-section="trainers" onclick="showSection('trainers',this)">
+      <span class="nav-icon">🏋️</span><span>Trainers</span>
+    </a>
+    <a href="#" class="nav-item" data-section="analytics" onclick="showSection('analytics',this)">
+      <span class="nav-icon">📈</span><span>Analytics</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-badge">
+      <div class="admin-avatar">AK</div>
+      <div class="admin-info">
+        <span class="admin-name">Avinash Kumar</span>
+        <span class="admin-role">Admin</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="main-content" id="mainContent">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Search members, classes..." id="globalSearch" oninput="handleSearch(this.value)" />
+      </div>
+      <div class="notif-btn" onclick="toggleNotif()">
+        🔔
+        <span class="notif-badge">3</span>
+      </div>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-header">Notifications</div>
+        <div class="notif-item">⚠️ Rahul's membership expires in 2 days</div>
+        <div class="notif-item">💳 Payment failed for Priya Singh</div>
+        <div class="notif-item">📅 Yoga class at 6PM – 2 slots left</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== DASHBOARD SECTION ===================== -->
+  <section class="section active" id="section-dashboard">
+    <div class="section-header">
+      <h1>Welcome back, Avinash 👋</h1>
+      <p>Here's what's happening at GymSphere today.</p>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--accent:#a855f7">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statMembers">1,248</div>
+          <div class="stat-label">Total Members</div>
+          <div class="stat-change positive">▲ 12% this month</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#06b6d4">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statRevenue">₹4,82,500</div>
+          <div class="stat-label">Monthly Revenue</div>
+          <div class="stat-change positive">▲ 8.3% vs last month</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#10b981">
+        <div class="stat-icon">📅</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statClasses">38</div>
+          <div class="stat-label">Classes Today</div>
+          <div class="stat-change neutral">── Same as yesterday</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#f59e0b">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statCheckins">342</div>
+          <div class="stat-label">Check-ins Today</div>
+          <div class="stat-change positive">▲ 5% vs avg</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART ROW -->
+    <div class="chart-row">
+      <div class="card chart-card">
+        <div class="card-header">
+          <h3>Revenue Overview</h3>
+          <select class="period-select" onchange="updateRevenueChart(this.value)">
+            <option value="6">Last 6 Months</option>
+            <option value="12">Last 12 Months</option>
+          </select>
+        </div>
+        <canvas id="revenueChart"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="card-header">
+          <h3>Membership Types</h3>
+        </div>
+        <canvas id="membershipChart"></canvas>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY + QUICK CHECK-IN -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><h3>Recent Check-ins</h3></div>
+        <div class="activity-list" id="activityList">
+          <div class="activity-item">
+            <div class="member-avatar" style="background:linear-gradient(135deg,#a855f7,#6366f1)">RS</div>
+            <div class="activity-info"><strong>Rahul Sharma</strong><span>Checked in · 2 min ago · QR Code</span></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="activity-item">
+            <div class="member-avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">PK</div>
+            <div class="activity-info"><strong>Priya Kapoor</strong><span>Checked in · 5 min ago · RFID</span></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="activity-item">
+            <div class="member-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">AM</div>
+            <div class="activity-info"><strong>Amit Mishra</strong><span>Checked in · 11 min ago · Biometric</span></div>
+            <span class="badge badge-yellow">Expiring</span>
+          </div>
+          <div class="activity-item">
+            <div class="member-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">SJ</div>
+            <div class="activity-info"><strong>Sunita Jha</strong><span>Checked in · 18 min ago · QR Code</span></div>
+            <span class="badge badge-green">Active</span>
+          </div>
+          <div class="activity-item">
+            <div class="member-avatar" style="background:linear-gradient(135deg,#ec4899,#a855f7)">DK</div>
+            <div class="activity-info"><strong>Dev Kumar</strong><span>Access denied · 22 min ago</span></div>
+            <span class="badge badge-red">Expired</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Quick Check-in</h3></div>
+        <div class="checkin-box">
+          <div class="qr-mock">
+            <div class="qr-inner">📱</div>
+            <div class="qr-label">Scan QR / Tap RFID</div>
+          </div>
+          <div class="or-divider">or</div>
+          <input type="text" class="checkin-input" id="checkinInput" placeholder="Enter Member ID or Name..." />
+          <button class="btn btn-primary" onclick="doCheckin()">⚡ Check In</button>
+          <div class="checkin-feedback" id="checkinFeedback"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MEMBERS SECTION ===================== -->
+  <section class="section" id="section-members">
+    <div class="section-header">
+      <h1>Member Management</h1>
+      <button class="btn btn-primary" onclick="openModal('addMemberModal')">+ Add Member</button>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" class="filter-input" placeholder="🔍 Search members..." id="memberSearch" oninput="filterMembers(this.value)" />
+      <select class="filter-select" id="statusFilter" onchange="filterMembers(document.getElementById('memberSearch').value)">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="expiring">Expiring Soon</option>
+        <option value="expired">Expired</option>
+      </select>
+      <select class="filter-select" id="planFilter" onchange="filterMembers(document.getElementById('memberSearch').value)">
+        <option value="all">All Plans</option>
+        <option value="Basic">Basic</option>
+        <option value="Premium">Premium</option>
+        <option value="Elite">Elite</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <table class="data-table" id="membersTable">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Plan</th>
+            <th>Join Date</th>
+            <th>Expires</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="membersTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== SCHEDULING SECTION ===================== -->
+  <section class="section" id="section-scheduling">
+    <div class="section-header">
+      <h1>Class Scheduling</h1>
+      <button class="btn btn-primary" onclick="openModal('addClassModal')">+ Add Class</button>
+    </div>
+
+    <div class="schedule-grid">
+      <div class="card schedule-day" id="schedule-container"></div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header"><h3>Upcoming Classes</h3></div>
+      <div class="classes-list" id="classesList"></div>
+    </div>
+  </section>
+
+  <!-- ===================== BILLING SECTION ===================== -->
+  <section class="section" id="section-billing">
+    <div class="section-header">
+      <h1>Billing & Payments</h1>
+      <button class="btn btn-primary" onclick="openModal('newInvoiceModal')">+ New Invoice</button>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card" style="--accent:#10b981">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="stat-value">₹3,24,000</div>
+          <div class="stat-label">Collected This Month</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#f59e0b">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value">₹48,500</div>
+          <div class="stat-label">Pending Payments</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#ef4444">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+          <div class="stat-value">₹12,000</div>
+          <div class="stat-label">Failed Transactions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header">
+        <h3>Transaction History</h3>
+        <select class="period-select">
+          <option>This Month</option>
+          <option>Last Month</option>
+          <option>Last 3 Months</option>
+        </select>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Invoice #</th><th>Member</th><th>Plan</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody id="billingTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== TRAINERS SECTION ===================== -->
+  <section class="section" id="section-trainers">
+    <div class="section-header">
+      <h1>Trainer & Staff</h1>
+      <button class="btn btn-primary" onclick="openModal('addTrainerModal')">+ Add Trainer</button>
+    </div>
+    <div class="trainers-grid" id="trainersGrid"></div>
+  </section>
+
+  <!-- ===================== ANALYTICS SECTION ===================== -->
+  <section class="section" id="section-analytics">
+    <div class="section-header">
+      <h1>Analytics & Insights</h1>
+      <p>Data-driven decisions for your gym's growth.</p>
+    </div>
+    <div class="chart-row">
+      <div class="card chart-card">
+        <div class="card-header"><h3>Monthly Check-ins Trend</h3></div>
+        <canvas id="checkinChart"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="card-header"><h3>Class Popularity</h3></div>
+        <canvas id="classChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-row" style="margin-top:1.5rem">
+      <div class="card chart-card">
+        <div class="card-header"><h3>Member Retention Rate</h3></div>
+        <canvas id="retentionChart"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="card-header"><h3>Revenue Breakdown</h3></div>
+        <canvas id="revenueBreakChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- ADD MEMBER MODAL -->
+<div class="modal-overlay" id="addMemberModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Member</h3>
+      <button class="modal-close" onclick="closeModal('addMemberModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="newMemberName" placeholder="e.g. Rohit Verma" />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="newMemberPhone" placeholder="+91 XXXXXXXXXX" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="newMemberEmail" placeholder="email@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Membership Plan</label>
+          <select id="newMemberPlan">
+            <option>Basic</option>
+            <option>Premium</option>
+            <option>Elite</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Join Date</label>
+        <input type="date" id="newMemberDate" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addMemberModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLASS MODAL -->
+<div class="modal-overlay" id="addClassModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Schedule New Class</h3>
+      <button class="modal-close" onclick="closeModal('addClassModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Class Name</label>
+          <input type="text" id="newClassName" placeholder="e.g. Zumba, Yoga, HIIT" />
+        </div>
+        <div class="form-group">
+          <label>Trainer</label>
+          <select id="newClassTrainer">
+            <option>Vikram Singh</option>
+            <option>Anita Rao</option>
+            <option>Suresh Patel</option>
+            <option>Meena Joshi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Day</label>
+          <select id="newClassDay">
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input type="time" id="newClassTime" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Max Slots</label>
+          <input type="number" id="newClassSlots" placeholder="20" min="1" max="100" />
+        </div>
+        <div class="form-group">
+          <label>Duration (mins)</label>
+          <input type="number" id="newClassDuration" placeholder="60" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addClassModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addClass()">Schedule Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW INVOICE MODAL -->
+<div class="modal-overlay" id="newInvoiceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Generate Invoice</h3>
+      <button class="modal-close" onclick="closeModal('newInvoiceModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Select Member</label>
+        <select id="invoiceMember">
+          <option>Rahul Sharma</option>
+          <option>Priya Kapoor</option>
+          <option>Amit Mishra</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plan</label>
+          <select id="invoicePlan">
+            <option>Basic – ₹999/mo</option>
+            <option>Premium – ₹1,999/mo</option>
+            <option>Elite – ₹3,499/mo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="invoiceMethod">
+            <option>UPI</option>
+            <option>Credit Card</option>
+            <option>Debit Card</option>
+            <option>Cash</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newInvoiceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateInvoice()">Generate & Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TRAINER MODAL -->
+<div class="modal-overlay" id="addTrainerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Trainer</h3>
+      <button class="modal-close" onclick="closeModal('addTrainerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="newTrainerName" placeholder="Trainer name" />
+        </div>
+        <div class="form-group">
+          <label>Specialization</label>
+          <input type="text" id="newTrainerSpec" placeholder="e.g. Yoga, CrossFit, Zumba" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Experience (Years)</label>
+          <input type="number" id="newTrainerExp" min="0" placeholder="5" />
+        </div>
+        <div class="form-group">
+          <label>Monthly Salary (₹)</label>
+          <input type="number" id="newTrainerSalary" placeholder="35000" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addTrainerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTrainer()">Add Trainer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
